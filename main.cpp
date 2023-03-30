@@ -190,11 +190,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// カメラの位置と向きの設定
 	SetCameraPositionAndTarget_UpVecY(VGet(0, 300, -800), VGet(0.0f, 0.0f, 0.0f));
 
+	// マテリアル設定
+	MATERIALPARAM Material;
+	Material.Diffuse = GetColorF(1.0f, 1.0f, 1.0f, 1.0f);
+	Material.Specular = GetColorF(1.0f, 1.0f, 1.0f, 1.0f);
+	Material.Ambient = GetColorF(1.0f, 1.0f, 1.0f, 1.0f);
+	Material.Emissive = GetColorF(0.0f, 0.0f, 0.0f, 0.0f);
+	Material.Power = 20.0f;
+	SetMaterialParam(Material);
+
 	// 視野角
 	float pers = 60.0f;
 
 	// 中心から見たカメラの方向
-	float cameraAngle = DX_PI_F;
+	float cameraAngle = 0.0f;
 
 	// テクスチャのロード
 	int texture = LoadGraph(kTextureFilename);
@@ -227,36 +236,30 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		// 視野角を毎フレーム変更
 		SetupCamera_Perspective(pers * DX_PI_F / 180.0f);
 
+#if false
 		// カメラの向きを毎フレーム変更
 		VECTOR cameraPos = VGet(0, 300, 0);
 		cameraPos.x = sinf(cameraAngle) * kCameraDistance;
 		cameraPos.z = cosf(cameraAngle) * kCameraDistance;
 		SetCameraPositionAndTarget_UpVecY(cameraPos, VGet(0, 0, 0));
-
+#else 
+		// カメラの向きを毎フレーム変更
+		VECTOR cameraPos = VGet(0, 300, -800);	// カメラ初期位置
+		MATRIX mtx = MGetRotY(cameraAngle);		//
+		cameraPos = VTransform(cameraPos, mtx);
+		SetCameraPositionAndTarget_UpVecY(cameraPos, VGet(0, 0, 0));
+#endif
 		// グリッドの表示
 		DrawGrid();
 
 		// ポリゴンの表示
 		DrawMapPolygon(VGet(0, 0, 0), 400.0f, texture);
 
-		DrawMapPolygon(VGet(0, 400, 0), 400.0f, texture);
-
-		DrawMapPolygon(VGet(400, 0, 0), 400.0f, texture);
-
-		DrawMapPolygon(VGet(-400, 0, 0), 400.0f, texture);
-
-		DrawMapPolygon(VGet(0, -400, 0), 400.0f, texture);
-
-		DrawMapPolygon(VGet(400, 400, 0), 400.0f, texture);
-
-		DrawMapPolygon(VGet(-400, -400, 0), 400.0f, texture);
-
-		DrawMapPolygon(VGet(400, -400, 0), 400.0f, texture);
-
-		DrawMapPolygon(VGet(-400, 400, 0), 400.0f, texture);
-
 		// 現在の視野角をデバック表示
 		DrawFormatString(0, 0, 0xffffff, "pers = %f", pers);
+
+		COLOR_F ambColor = GetLightAmbColor();
+		DrawFormatString(0, 16, 0xffffff, "amb = (%.4f,%.4f,%.4f,%.4f)", ambColor.r, ambColor.g, ambColor.b, ambColor.a);
 
 		// 裏画面を表画面を入れ替える
 		ScreenFlip();

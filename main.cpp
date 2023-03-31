@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "DrawPoly.h"
 #include "Map.h"
+#include "Player.h"
 #include <cmath>
 #include <vector>
 
@@ -91,9 +92,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	float cameraDistance = 800.0f;
 
 	Map* pMap = new Map();
+	Player* pPlayer = new Player(pMap);
 
 	pMap->Init();
-
+	pPlayer->Init();
 
 	while (ProcessMessage() == 0)
 	{
@@ -103,6 +105,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		ClearDrawScreen();
 
 		pMap->Update();
+		pPlayer->Update();
 
 		int key = GetJoypadInputState(DX_INPUT_KEY_PAD1);
 		if (key & PAD_INPUT_1)
@@ -140,7 +143,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		cameraPos.z = cosf(cameraAngle) * kCameraDistance;
 		SetCameraPositionAndTarget_UpVecY(cameraPos, VG
 			et(0, 0, 0));
-#else 
+#endif
+#if false
 		// カメラの向きを毎フレーム変更
 		VECTOR cameraPos = VGet(0, 0, -1);	// カメラ初期位置
 		VECTOR cameraUp = VGet(0, 1, 0);
@@ -152,19 +156,35 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		cameraUp = VTransform(cameraUp, mtx);
 		mtx = MMult(mtx, mtxScale);
 		cameraPos = VTransform(cameraPos, mtx);
-	//	SetCameraPositionAndTarget_UpVecY(cameraPos, VGet(0, 0, 0));
 		SetCameraPositionAndTargetAndUpVec(cameraPos, VGet(0, 0, 0), cameraUp);
 #endif
+		VECTOR cameraPos = pMap->GetCenter();		// カメラ位置
+		cameraPos.y += cameraDistance;
+		VECTOR cameraTarget = pMap->GetCenter();	// カメラの見ている場所
+		VECTOR cameraUp = VGet(0, 0, 1);			// カメラの上方向
+
+		SetCameraPositionAndTargetAndUpVec(cameraPos, cameraTarget, cameraUp);
+
+		// プレイヤー視点のカメラに変更
+		pPlayer->SetCamera();
+
 		// グリッドの表示
 		DrawGrid();		
 
+		// ポリゴンの表示
 		pMap->Draw();
+
+		// プレイヤーの表示
+		pPlayer->Draw();
 
 		// 現在の視野角をデバック表示
 		DrawFormatString(0, 0, 0xffffff, "pers = %f", pers);
 
 		COLOR_F ambColor = GetLightAmbColor();
 		DrawFormatString(0, 16, 0xffffff, "amb = (%.4f,%.4f,%.4f,%.4f)", ambColor.r, ambColor.g, ambColor.b, ambColor.a);
+
+		// 
+		DrawFormatString(0, 32, 0xffffff, "MapCenter(%f, %f, %f)", pMap->GetCenter().x, pMap->GetCenter().y, pMap->GetCenter().z);
 
 		// 裏画面を表画面を入れ替える
 		ScreenFlip();

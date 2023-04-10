@@ -73,7 +73,7 @@ void Player::Update()
 		case Dir::minusZ:	tempZ--;	break;
 		case Dir::minusX:	tempX--;	break;
 		}
-		if (pMap_->IsBlock(tempX, tempZ))
+		if (!pMap_->IsBlock(tempX, tempZ))
 		{
 			indexX_ = tempX;
 			indexZ_ = tempZ;
@@ -86,33 +86,55 @@ void Player::Update()
 	if ((key & PAD_INPUT_LEFT) && !(lastKey_ & PAD_INPUT_LEFT))
 	{
 		// 反時計回り90度
+		tempDir++;
+		if (tempDir > static_cast<int>(Dir::minusX))
+		{
+			tempDir = static_cast<int>(Dir::minusZ);
+		}
+		/*MATRIX mtx = MGetRotY(-DX_PI_F / 2);
+		cameraDirection_ = VTransform(cameraDirection_ , mtx);*/
+	}
+	if ((key & PAD_INPUT_RIGHT) && !(lastKey_ & PAD_INPUT_RIGHT))
+	{
+		// 時計回り90度
 		tempDir--;
 		if (tempDir < 0)
 		{
 			tempDir = static_cast<int>(Dir::minusX);
 		}
-		MATRIX mtx = MGetRotY(-DX_PI_F / 2);
-		cameraDirection_ = VTransform(cameraDirection_ , mtx);
+		/*MATRIX mtx = MGetRotY(DX_PI_F / 2);
+		cameraDirection_ = VTransform(cameraDirection_, mtx);*/
 	}
-	if ((key & PAD_INPUT_RIGHT) && !(lastKey_ & PAD_INPUT_RIGHT))
+	direction_ = static_cast<Dir>(tempDir);
+	switch (direction_)
 	{
-		// 時計回り90度
-		tempDir++;
-		if (tempDir > static_cast<int>(Dir::minusX))
-		{
-			tempDir = static_cast<int>(Dir::plusX);
-		}
-		MATRIX mtx = MGetRotY(DX_PI_F / 2);
-		cameraDirection_ = VTransform(cameraDirection_, mtx);
+	case Dir::minusZ:
+		cameraDirection_ = VGet(0, 0, -1);
+		break;
+	case Dir ::plusX:
+		cameraDirection_ = VGet(1, 0, 0);
+		break;
+	case Dir::plusZ:
+		cameraDirection_ = VGet(0, 0, 1);
+		break;
+	case Dir::minusX:
+		cameraDirection_ = VGet(-1, 0, 0);
+		break;
+	default:
+		break;
 	}
 	lastKey_ = key;
-	direction_ = static_cast<Dir>(tempDir);
 #endif
 }
 
 void Player::Draw()
 {
-	DrawSphere3D(GetPos(), 48.0f, 8, 0xffffff, 0xffffff, true);
+	DrawSphere3D(GetPos(), 24.0f, 8, 0xffffff, 0xffffff, true);
+	VECTOR start = GetPos();
+	VECTOR end = GetDirection();
+	end = VScale(end, 64);
+	end = VAdd(start, end);
+	DrawCapsule3D(start, end, 6.0f, 16, 0x0000ff, 0x0000ff, true);
 }
 
 void Player::SetCamera()

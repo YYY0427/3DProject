@@ -25,9 +25,9 @@ public:
 private:
 	enum class Dir
 	{
-		plusZ,
-		plusX,
 		minusZ,
+		plusX,
+		plusZ,
 		minusX
 	};
 private:

@@ -77,7 +77,7 @@ VECTOR Map::GetCenter() const
 	VECTOR result;
 	result.x = (GetSizeX() / 2.0f) - (kCubeSize / 2.0f);
 	result.y = 0.0f;
-	result.z = (-GetSizeZ() / 2.0f) + (kCubeSize / 2.0f);
+	result.z = (GetSizeZ() / 2.0f) - (kCubeSize / 2.0f);
 	return result;
 }
 
@@ -100,7 +100,7 @@ bool Map::IsBlock(int x, int z) const
 VECTOR Map::GetChipPos(int x, int z) const
 {
 	float posX = kCubeSize * x;
-	float posZ = -kCubeSize * z;
+	float posZ = kCubeSize * z;
 	VECTOR result = VGet(posX, 0.0f, posZ);
 	return result;
 }
